@@ -28,7 +28,7 @@ const SplashScreen = ({ navigation }) => {
 
     // set splash duration - 2.5 seconds
     setTimeout(() => {
-      navigation.navigate("Home");
+      navigation.navigate("TopTabs");
     }, 2500);
   }, []);
 
