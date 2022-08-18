@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity } from "react-na
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import { useFonts } from "expo-font";
+import AppLoading from "expo-app-loading";
 
 import NotesScreen from "../screens/NotesScreen";
 import colors from "../constants/colors";
@@ -15,14 +16,14 @@ import ToggleTheme_light from "../assets/svg/ToggleTheme_light";
 
 const Tab = createMaterialTopTabNavigator();
 
-const TopTabs = () => {
+const TopTabs = (props) => {
   // load fonts
   const [fontsLoaded] = useFonts({
     "Mulish-SemiBold": require("../assets/fonts/Mulish/Mulish-SemiBold.ttf"),
     "MontserratAlternates-SemiBold": require("../assets/fonts/MontserratAlternates/MontserratAlternates-SemiBold.ttf"),
   });
   // state for keeping theme state
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(null);
 
   useEffect(() => {
     const grabData = async () => {
@@ -35,91 +36,99 @@ const TopTabs = () => {
 
   return (
     <>
-      <SafeAreaView style={[styles.container, { backgroundColor: theme === "light" ? colors.light : colors.dark }]}>
-        <View style={styles.header}>
-          <Text
-            style={[
-              styles.title,
-              {
-                color: theme === "light" ? colors.dark : "white",
-                fontFamily: fontsLoaded ? "MontserratAlternates-SemiBold" : null,
-              },
-            ]}
-          >
-            Notes
-          </Text>
-          <TouchableOpacity style={styles.searchBtn}>
-            {theme === "light" ? <Search_light /> : <Search_dark />}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.toggleThemeBtn}
-            onPress={() => {
-              if (theme === "light") {
-                storeData("THEME_MODE", "dark");
-                setTheme("dark");
-              } else {
-                storeData("THEME_MODE", "light");
-                setTheme("light");
-              }
-            }}
-          >
-            {theme === "light" ? <ToggleTheme_light /> : <ToggleTheme_dark />}
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      {theme !== null && fontsLoaded ? (
+        <SafeAreaView style={[styles.container, { backgroundColor: theme === "light" ? colors.light : colors.dark }]}>
+          <View style={styles.header}>
+            <Text
+              style={[
+                styles.title,
+                {
+                  color: theme === "light" ? colors.dark : "white",
+                  fontFamily: fontsLoaded ? "MontserratAlternates-SemiBold" : null,
+                },
+              ]}
+            >
+              Notes
+            </Text>
+            <TouchableOpacity style={styles.searchBtn}>
+              {theme === "light" ? <Search_light /> : <Search_dark />}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.toggleThemeBtn}
+              onPress={() => {
+                if (theme === "light") {
+                  storeData("THEME_MODE", "dark");
+                  setTheme("dark");
+                } else {
+                  storeData("THEME_MODE", "light");
+                  setTheme("light");
+                }
+              }}
+            >
+              {theme === "light" ? <ToggleTheme_light /> : <ToggleTheme_dark />}
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      ) : (
+        <AppLoading onError={console.warn} />
+      )}
 
-      <Tab.Navigator
-        initialRouteName="Notes"
-        backBehavior="none"
-        screenOptions={{
-          tabBarItemStyle: { flex: 1, justifyContent: "center" },
-          swipeEnabled: false,
-          tabBarPressColor: theme === "light" ? colors.light : colors.dark,
-          tabBarActiveTintColor: colors.orange,
-          tabBarInactiveTintColor: colors.grey_light,
-          tabBarIndicatorStyle: {
-            marginHorizontal: "15%",
-            width: "0%",
-            backgroundColor: colors.orange,
-            height: hp("0.75%"),
-            borderRadius: 10,
-          },
-          tabBarStyle: {
-            backgroundColor: theme === "light" ? colors.light : colors.dark,
-            marginBottom: hp("-1%"),
-            elevation: 0,
-            shadowColor: colors.dark,
-            shadowOffset: { width: 0, height: 0 },
-            shadowOpacity: 0,
-            shadowRadius: 0,
-          },
-        }}
-      >
-        <Tab.Screen
-          options={{
-            tabBarLabel: "All",
-            tabBarLabelStyle: {
-              textTransform: "capitalize",
-              fontSize: wp("4%"),
-              fontFamily: fontsLoaded ? "Mulish-SemiBold" : null,
+      {theme !== null && fontsLoaded ? (
+        <Tab.Navigator
+          initialRouteName="Notes"
+          backBehavior="none"
+          screenOptions={{
+            tabBarItemStyle: { flex: 1, justifyContent: "center" },
+            swipeEnabled: false,
+            tabBarPressColor: theme === "light" ? colors.light : colors.dark,
+            tabBarActiveTintColor: colors.orange,
+            tabBarInactiveTintColor: colors.grey_light,
+            tabBarIndicatorStyle: {
+              marginHorizontal: "15%",
+              width: "0%",
+              backgroundColor: colors.orange,
+              height: hp("0.75%"),
+              borderRadius: 10,
+            },
+            tabBarStyle: {
+              backgroundColor: theme === "light" ? colors.light : colors.dark,
+              marginBottom: hp("-1%"),
+              elevation: 0,
+              shadowColor: colors.dark,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0,
+              shadowRadius: 0,
             },
           }}
-          name="Notes"
-          children={() => <NotesScreen themeMode={theme} />}
-        />
-        <Tab.Screen
-          options={{
-            tabBarLabel: "Folders",
-            tabBarLabelStyle: {
-              textTransform: "capitalize",
-              fontSize: wp("4%"),
-              fontFamily: fontsLoaded ? "Mulish-SemiBold" : null,
-            },
-          }}
-          name="Folders"
-          children={() => <FoldersScreen themeMode={theme} />}
-        />
-      </Tab.Navigator>
+        >
+          <Tab.Screen
+            options={{
+              tabBarLabel: "All",
+              tabBarLabelStyle: {
+                textTransform: "capitalize",
+                fontSize: wp("4%"),
+                fontFamily: fontsLoaded ? "Mulish-SemiBold" : null,
+              },
+            }}
+            name="Notes"
+            children={() => <NotesScreen themeMode={theme} navigation={props.navigation} />}
+          />
+          <Tab.Screen
+            options={{
+              tabBarLabel: "Folders",
+              tabBarLabelStyle: {
+                textTransform: "capitalize",
+                fontSize: wp("4%"),
+                fontFamily: fontsLoaded ? "Mulish-SemiBold" : null,
+              },
+            }}
+            name="Folders"
+            children={() => <FoldersScreen themeMode={theme} />}
+          />
+        </Tab.Navigator>
+      ) : (
+        <AppLoading onError={console.warn} />
+      )}
     </>
   );
 };
