@@ -135,7 +135,7 @@ const AddNoteScreen = ({ navigation, route }) => {
                   "successfully added!",
                   "error in adding note!"
                 );
-                navigation.goBack();
+                navigation.replace("TopTabs");
               }
             }}
           >

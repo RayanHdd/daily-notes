@@ -14,6 +14,7 @@ import colors from "./app/constants/colors";
 import db_queries from "./app/constants/db_queries";
 import { createOrDropTable, manipulateData, fetchData } from "./app/functions/db_functions";
 import { getData } from "./app/functions/storage_functions";
+import NoteDetailsScreen from "./app/screens/NoteDetailsScreen";
 
 const Stack = createStackNavigator();
 const db = SQLite.openDatabase("db.database"); // returns Database object
@@ -106,6 +107,7 @@ export default function App(props) {
           <Stack.Screen name="Splash" component={SplashScreen} />
           <Stack.Screen name="TopTabs" component={TopTabs} />
           <Stack.Screen name="AddNote" component={AddNoteScreen} options={{ animationEnabled: false }} />
+          <Stack.Screen name="NoteDetails" component={NoteDetailsScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <Toast config={toastConfig} />

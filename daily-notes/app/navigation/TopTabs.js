@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity } from "react-native";
+import React, { useEffect, useState, useRef } from "react";
+import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, Button, Pressable, Animated } from "react-native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import { useFonts } from "expo-font";
 import AppLoading from "expo-app-loading";
+import { Searchbar } from "react-native-paper";
 
 import NotesScreen from "../screens/NotesScreen";
 import colors from "../constants/colors";
@@ -21,9 +22,25 @@ const TopTabs = (props) => {
   const [fontsLoaded] = useFonts({
     "Mulish-SemiBold": require("../assets/fonts/Mulish/Mulish-SemiBold.ttf"),
     "MontserratAlternates-SemiBold": require("../assets/fonts/MontserratAlternates/MontserratAlternates-SemiBold.ttf"),
+    "Mulish-Medium": require("../assets/fonts/Mulish/Mulish-Medium.ttf"),
   });
   // state for keeping theme state
   const [theme, setTheme] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState(null);
+
+  const [searchBarShown, setSearchBarShown] = useState(false);
+
+  // const [animatedValue, setAnimatedValue] = useState(new Animated.Value(0));
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  const _startAnimation = () => {
+    Animated.timing(slideAnim, {
+      toValue: 0.6,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+  };
 
   useEffect(() => {
     const grabData = async () => {
@@ -38,36 +55,100 @@ const TopTabs = (props) => {
     <>
       {theme !== null && fontsLoaded ? (
         <SafeAreaView style={[styles.container, { backgroundColor: theme === "light" ? colors.light : colors.dark }]}>
-          <View style={styles.header}>
-            <Text
-              style={[
-                styles.title,
-                {
-                  color: theme === "light" ? colors.dark : "white",
-                  fontFamily: fontsLoaded ? "MontserratAlternates-SemiBold" : null,
-                },
-              ]}
-            >
-              Notes
-            </Text>
-            <TouchableOpacity style={styles.searchBtn}>
-              {theme === "light" ? <Search_light /> : <Search_dark />}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.toggleThemeBtn}
-              onPress={() => {
-                if (theme === "light") {
-                  storeData("THEME_MODE", "dark");
-                  setTheme("dark");
-                } else {
-                  storeData("THEME_MODE", "light");
-                  setTheme("light");
-                }
+          {!searchBarShown ? (
+            <View style={styles.header}>
+              <Text
+                style={[
+                  styles.title,
+                  {
+                    color: theme === "light" ? colors.dark : "white",
+                    fontFamily: fontsLoaded ? "MontserratAlternates-SemiBold" : null,
+                  },
+                ]}
+              >
+                Notes
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setSearchBarShown(true);
+                  _startAnimation();
+                }}
+                style={styles.searchBtn}
+              >
+                {theme === "light" ? <Search_light /> : <Search_dark />}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.toggleThemeBtn}
+                onPress={() => {
+                  if (theme === "light") {
+                    storeData("THEME_MODE", "dark");
+                    setTheme("dark");
+                  } else {
+                    storeData("THEME_MODE", "light");
+                    setTheme("light");
+                  }
+                }}
+              >
+                {theme === "light" ? <ToggleTheme_light /> : <ToggleTheme_dark />}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <Animated.View
+              style={{
+                // position: "absolute",
+                // right: hp("16%"),
+                // bottom: hp("14.5%"),
+                transform: [
+                  {
+                    translateX: slideAnim.interpolate({
+                      inputRange: [0, 0.6],
+                      outputRange: [-600, 0],
+                    }),
+                  },
+                ],
               }}
             >
-              {theme === "light" ? <ToggleTheme_light /> : <ToggleTheme_dark />}
-            </TouchableOpacity>
-          </View>
+              <View style={{ flexDirection: "row" }}>
+                <Searchbar
+                  placeholder="Search"
+                  inputStyle={{ fontFamily: "Mulish-Medium", fontSize: wp("3.6%"), letterSpacing: 0.8 }}
+                  style={{ height: hp("5.5%"), width: wp("78%"), left: wp("4%"), top: hp("2.5%"), borderRadius: 6 }}
+                  onChangeText={(query) => {
+                    setSearchQuery(query);
+                  }}
+                  value={searchQuery}
+                />
+                <Pressable
+                  style={{
+                    // alignItems: "center",
+                    // justifyContent: "center",
+                    paddingTop: hp("4%"),
+                    paddingLeft: wp("6.7%"),
+                    // borderRadius: 4,
+                    // elevation: 3,
+                    // backgroundColor: "black",
+                  }}
+                  onPress={() => {
+                    setSearchBarShown(false);
+                    setSearchQuery(null);
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: wp("3.2%"),
+                      // alignSelf: "center",
+                      letterSpacing: 0.25,
+                      color: colors.purpleBlue,
+                      fontFamily: "MontserratAlternates-SemiBold",
+                    }}
+                  >
+                    Cancel
+                  </Text>
+                </Pressable>
+              </View>
+            </Animated.View>
+          )}
         </SafeAreaView>
       ) : (
         <AppLoading onError={console.warn} />
@@ -92,7 +173,7 @@ const TopTabs = (props) => {
             },
             tabBarStyle: {
               backgroundColor: theme === "light" ? colors.light : colors.dark,
-              marginBottom: hp("-1%"),
+              marginBottom: hp("-1.5%"),
               elevation: 0,
               shadowColor: colors.dark,
               shadowOffset: { width: 0, height: 0 },
@@ -111,7 +192,7 @@ const TopTabs = (props) => {
               },
             }}
             name="Notes"
-            children={() => <NotesScreen themeMode={theme} navigation={props.navigation} />}
+            children={() => <NotesScreen themeMode={theme} searchQuery={searchQuery} navigation={props.navigation} />}
           />
           <Tab.Screen
             options={{
