@@ -84,6 +84,7 @@ const NotesScreen = ({ navigation, themeMode, searchQuery }) => {
             noteTitle: item.note_title,
             noteDescription: item.note_description,
             noteDateTime: item.note_dateTime,
+            noteId: item.note_id,
           });
         }}
       >

@@ -58,7 +58,7 @@ export default function App(props) {
           fontSize: wp("4%"),
           color: "white",
         }}
-        style={{ borderLeftColor: "pink", borderTopRightRadius: 5, borderBottomRightRadius: 5 }}
+        style={{ borderLeftColor: "#C5E90B", borderTopRightRadius: 5, borderBottomRightRadius: 5 }}
         contentContainerStyle={{
           backgroundColor: colors.purpleBlue,
           borderTopRightRadius: 5,

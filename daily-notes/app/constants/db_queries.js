@@ -1,16 +1,22 @@
 export default {
-  // create table queries
+  // CREATE table queries
   CREATE_NOTE_TABLE:
     "CREATE TABLE IF NOT EXISTS note_table (note_id INTEGER PRIMARY KEY AUTOINCREMENT, note_title VARCHAR(200) NOT NULL, note_description TEXT NOT NULL, note_dateTime VARCHAR(50) NOT NULL)",
 
-  // drop table queries
+  // DROP table queries
   DROP_NOTE_TABLE: "DROP TABLE IF EXISTS note_table",
 
-  // insert to the table queries
+  // INSERT to the table queries
   INSERT_NOTE: "INSERT INTO note_table (note_title, note_description, note_dateTime) VALUES (?,?,?)",
 
-  // select queries
+  // SELECT queries
   SELECT_NOTES: "SELECT * FROM note_table",
+
+  // UPDATE queries
+  UPDATE_NOTE_BY_ID: "UPDATE note_table SET note_title = ?, note_description = ?, note_dateTime = ? WHERE note_id = ?",
+
+  // DELETE queries
+  DELETE_NOTE_BY_ID: "DELETE FROM note_table WHERE note_id = ?",
 
   // DROP_PASSENGER_TABLE: "DROP TABLE IF EXISTS passenger_table",
   // GET_WALLET_CHARGE_BY_PHONE_NUMBER: "SELECT passenger_walletCharge FROM passenger_table WHERE passenger_phone = ?",
