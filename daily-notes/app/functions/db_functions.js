@@ -9,7 +9,6 @@ export const createOrDropTable = (db, tableName, query) => {
       (tx, res) => {
         console.log("create or drop execute success results: " + JSON.stringify(res));
         console.log("create or drop " + tableName + " transaction: " + JSON.stringify(tx));
-        // console.log("item:", res.rows.length);
         txn.executeSql(query, []);
       },
       (_, error) => {
@@ -34,23 +33,31 @@ export const manipulateData = (db, query, data, successTxt = null, failTxt = nul
           if (successTxt !== null)
             Toast.show({
               type: "success",
-              // text1: "Hello",
               text2: successTxt,
               visibilityTime: 2000,
-              topOffset: hp("2%"),
+              topOffset: hp("3%"),
             });
         } else {
           console.error("Failed to change...");
         }
       },
       (_, error) => {
-        if (failTxt !== null)
+        if (
+          error.toString() ===
+          "Error: UNIQUE constraint failed: noteFolder_table.note_id (code 2067 SQLITE_CONSTRAINT_UNIQUE[2067])"
+        ) {
           Toast.show({
             type: "error",
-            // text1: "Hello",
+            text2: "This note already added!",
+            visibilityTime: 2000,
+            topOffset: hp("3%"),
+          });
+        } else if (failTxt !== null)
+          Toast.show({
+            type: "error",
             text2: failTxt,
             visibilityTime: 2000,
-            topOffset: hp("2%"),
+            topOffset: hp("3%"),
           });
         console.error("manipulate table execute error: ", error);
       }

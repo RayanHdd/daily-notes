@@ -1,5 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
-import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, Button, Pressable, Animated } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  SafeAreaView,
+  TouchableOpacity,
+  Pressable,
+  Animated,
+  Platform,
+  StatusBar,
+} from "react-native";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from "react-native-responsive-screen";
 import { useFonts } from "expo-font";
@@ -17,7 +27,7 @@ import ToggleTheme_light from "../assets/svg/ToggleTheme_light";
 
 const Tab = createMaterialTopTabNavigator();
 
-const TopTabs = (props) => {
+const TopTabs = ({ navigation, route }) => {
   // load fonts
   const [fontsLoaded] = useFonts({
     "Mulish-SemiBold": require("../assets/fonts/Mulish/Mulish-SemiBold.ttf"),
@@ -96,9 +106,6 @@ const TopTabs = (props) => {
           ) : (
             <Animated.View
               style={{
-                // position: "absolute",
-                // right: hp("16%"),
-                // bottom: hp("14.5%"),
                 transform: [
                   {
                     translateX: slideAnim.interpolate({
@@ -113,7 +120,13 @@ const TopTabs = (props) => {
                 <Searchbar
                   placeholder="Search"
                   inputStyle={{ fontFamily: "Mulish-Medium", fontSize: wp("3.6%"), letterSpacing: 0.8 }}
-                  style={{ height: hp("5.5%"), width: wp("78%"), left: wp("4%"), top: hp("2.5%"), borderRadius: 6 }}
+                  style={{
+                    height: hp("4.2%"),
+                    width: wp("78%"),
+                    left: wp("4%"),
+                    top: Platform.OS === "android" ? StatusBar.currentHeight : hp("2%"),
+                    borderRadius: 6,
+                  }}
                   onChangeText={(query) => {
                     setSearchQuery(query);
                   }}
@@ -121,13 +134,8 @@ const TopTabs = (props) => {
                 />
                 <Pressable
                   style={{
-                    // alignItems: "center",
-                    // justifyContent: "center",
-                    paddingTop: hp("4%"),
-                    paddingLeft: wp("6.7%"),
-                    // borderRadius: 4,
-                    // elevation: 3,
-                    // backgroundColor: "black",
+                    top: Platform.OS === "android" ? StatusBar.currentHeight + hp("0.7%") : hp("2.7%"),
+                    paddingLeft: wp("6.5%"),
                   }}
                   onPress={() => {
                     setSearchBarShown(false);
@@ -137,7 +145,6 @@ const TopTabs = (props) => {
                   <Text
                     style={{
                       fontSize: wp("3.2%"),
-                      // alignSelf: "center",
                       letterSpacing: 0.25,
                       color: colors.purpleBlue,
                       fontFamily: "MontserratAlternates-SemiBold",
@@ -156,7 +163,7 @@ const TopTabs = (props) => {
 
       {theme !== null && fontsLoaded ? (
         <Tab.Navigator
-          initialRouteName="Notes"
+          initialRouteName={route.params !== undefined ? route.params.initialRouteName : "Notes"}
           backBehavior="none"
           screenOptions={{
             tabBarItemStyle: { flex: 1, justifyContent: "center" },
@@ -192,7 +199,7 @@ const TopTabs = (props) => {
               },
             }}
             name="Notes"
-            children={() => <NotesScreen themeMode={theme} searchQuery={searchQuery} navigation={props.navigation} />}
+            children={() => <NotesScreen themeMode={theme} searchQuery={searchQuery} navigation={navigation} />}
           />
           <Tab.Screen
             options={{
@@ -204,7 +211,7 @@ const TopTabs = (props) => {
               },
             }}
             name="Folders"
-            children={() => <FoldersScreen themeMode={theme} />}
+            children={() => <FoldersScreen themeMode={theme} searchQuery={searchQuery} navigation={navigation} />}
           />
         </Tab.Navigator>
       ) : (
@@ -220,7 +227,7 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    top: hp("3.2%"),
+    top: Platform.OS === "android" ? StatusBar.currentHeight : hp("1%"),
     paddingLeft: wp("5.5%"),
   },
   title: { fontSize: wp("5%") },

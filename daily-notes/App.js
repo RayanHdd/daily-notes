@@ -1,46 +1,48 @@
 import "react-native-gesture-handler";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { LogBox, View, Text } from "react-native";
 import * as SQLite from "expo-sqlite";
 import Toast, { BaseToast, ErrorToast } from "react-native-toast-message";
-import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
+import { widthPercentageToDP as wp } from "react-native-responsive-screen";
 
 import SplashScreen from "./app/screens/SplashScreen";
 import TopTabs from "./app/navigation/TopTabs";
 import AddNoteScreen from "./app/screens/AddNoteScreen";
+import AddFolderScreen from "./app/screens/AddFolderScreen";
 import colors from "./app/constants/colors";
 import db_queries from "./app/constants/db_queries";
-import { createOrDropTable, manipulateData, fetchData } from "./app/functions/db_functions";
-import { getData } from "./app/functions/storage_functions";
+import { createOrDropTable } from "./app/functions/db_functions";
+import { getData, storeData } from "./app/functions/storage_functions";
 import NoteDetailsScreen from "./app/screens/NoteDetailsScreen";
+import FolderNotesScreen from "./app/screens/FolderNotesScreen";
+import AddToFolderScreen from "./app/screens/AddToFolderScreen";
+
+import { MenuProvider } from "react-native-popup-menu";
 
 const Stack = createStackNavigator();
 const db = SQLite.openDatabase("db.database"); // returns Database object
 
-export default function App(props) {
-  // state for keeping theme state
-  const [theme, setTheme] = useState(null);
-
+export default function App() {
   useEffect(() => {
     LogBox.ignoreLogs(["exported from 'deprecated-react-native-prop-types'."]);
     LogBox.ignoreLogs([
       "expo-app-loading is deprecated in favor of expo-splash-screen: use SplashScreen.preventAutoHideAsync() and SplashScren.hideAsync() instead. https://docs.expo.dev/versions/latest/sdk/splash-screen/",
     ]);
     const grabData = async () => {
-      // set theme from async storage
-      const savedTheme = await getData("THEME_MODE");
-      setTheme(savedTheme);
+      const firstEntry = await getData("FIRST_ENTRY");
+
+      if (firstEntry !== "False") {
+        createOrDropTable(db, "note_table", db_queries.CREATE_NOTE_TABLE);
+        createOrDropTable(db, "folder_table", db_queries.CREATE_FOLDER_TABLE);
+        createOrDropTable(db, "noteFolder_table", db_queries.CREATE_NOTE_FOLDER_TABLE);
+
+        storeData("THEME_MODE", "dark");
+        storeData("FIRST_ENTRY", "False");
+      }
     };
     grabData().catch(console.error);
-    // createOrDropTable(db, "note_table", db_queries.CREATE_NOTE_TABLE);
-    // createOrDropTable(db, "note_table", db_queries.DROP_NOTE_TABLE);
-    // const grabData = async () => {
-    //   const notes = await fetchData(db, db_queries.SELECT_NOTES, []);
-    //   console.log(notes);
-    // };
-    // grabData().catch(console.error);
   }, []);
 
   /*
@@ -102,15 +104,20 @@ export default function App(props) {
 
   return (
     <>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Splash" component={SplashScreen} />
-          <Stack.Screen name="TopTabs" component={TopTabs} />
-          <Stack.Screen name="AddNote" component={AddNoteScreen} options={{ animationEnabled: false }} />
-          <Stack.Screen name="NoteDetails" component={NoteDetailsScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <Toast config={toastConfig} />
+      <MenuProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Splash" screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Splash" component={SplashScreen} />
+            <Stack.Screen name="TopTabs" component={TopTabs} />
+            <Stack.Screen name="AddNote" component={AddNoteScreen} options={{ animationEnabled: false }} />
+            <Stack.Screen name="AddFolder" component={AddFolderScreen} />
+            <Stack.Screen name="NoteDetails" component={NoteDetailsScreen} />
+            <Stack.Screen name="FolderNotes" component={FolderNotesScreen} />
+            <Stack.Screen name="AddToFolder" component={AddToFolderScreen} options={{ animationEnabled: false }} />
+          </Stack.Navigator>
+        </NavigationContainer>
+        <Toast config={toastConfig} />
+      </MenuProvider>
     </>
   );
 }

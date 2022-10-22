@@ -4,8 +4,9 @@ import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-nat
 import { useFonts } from "expo-font";
 
 import colors from "../constants/colors";
+import Folder from "../assets/svg/Folder";
 
-const NoteCard = ({ width, height, title, date, margin, bgColor, footerColor, style }) => {
+const FolderOptionCard = ({ width, height, name, bgColor, nameColor, notesCount, style }) => {
   // load fonts
   const [fontsLoaded] = useFonts({
     "Mulish-Medium": require("../assets/fonts/Mulish/Mulish-Medium.ttf"),
@@ -19,13 +20,16 @@ const NoteCard = ({ width, height, title, date, margin, bgColor, footerColor, st
             backgroundColor: bgColor,
             width: width,
             height: height,
+            shadowColor: bgColor,
           },
           style,
         ]}
       >
-        <Text style={styles.title}>{title}</Text>
+        <View style={styles.folder}>
+          <Folder />
+        </View>
 
-        <Text style={[styles.date, { color: footerColor }]}>{date.substr(0, 10) + "," + date.substr(10, 5)}</Text>
+        <Text style={[styles.name, { color: nameColor }]}>{name + " (" + notesCount + ")"}</Text>
 
         {/* {iconType === "rent" ? (
         <Image
@@ -61,34 +65,25 @@ const NoteCard = ({ width, height, title, date, margin, bgColor, footerColor, st
 
 const styles = StyleSheet.create({
   card: {
-    // justifyContent: "center",
-    // alignItems: "center",
-    marginBottom: hp("1.5%"),
-    borderRadius: 5,
-    shadowColor: colors.dark,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: hp("3%"),
+    marginLeft: wp("6.66%"),
+    borderRadius: 24,
     shadowOffset: {
-      width: 0,
-      height: 2,
+      width: 1.5,
+      height: 1.5,
     },
     shadowOpacity: 0.23,
     shadowRadius: 2.62,
-    elevation: 3,
+    elevation: 1.5,
   },
-  title: {
+  name: {
     fontFamily: "Mulish-Medium",
-    fontSize: wp("4%"),
-    top: hp("2%"),
-    left: wp("4.5%"),
-    paddingRight: wp("5.7%"),
-    lineHeight: hp("3%"),
+    fontSize: wp("2.9%"),
+    top: hp("1%"),
   },
-  date: {
-    fontFamily: "Mulish-Medium",
-    fontSize: wp("3.2%"),
-    position: "absolute",
-    bottom: hp("2.5%"),
-    left: wp("4.5%"),
-  },
+  folder: { bottom: hp("1%") },
 });
 
-export default NoteCard;
+export default FolderOptionCard;

@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, SafeAreaView, StatusBar, TouchableOpacity, FlatList, View, Image, Text } from "react-native";
+import {
+  StyleSheet,
+  SafeAreaView,
+  StatusBar,
+  TouchableOpacity,
+  FlatList,
+  View,
+  Image,
+  Text,
+  BackHandler,
+} from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import AppLoading from "expo-app-loading";
 import { useFonts } from "expo-font";
@@ -60,6 +70,11 @@ const NotesScreen = ({ navigation, themeMode, searchQuery }) => {
     };
     grabData().catch(console.error);
   }, [navigation]);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", () => true);
+    return () => backHandler.remove();
+  }, []);
 
   const renderItem = ({ item }) => {
     const bgColorsList = [
@@ -203,7 +218,7 @@ const styles = StyleSheet.create({
   },
   rightCardsContainer: {
     marginTop: hp("5%"),
-    marginLeft: wp("-2.5%"),
+    marginLeft: wp("-2%"),
   },
   leftCardsContainer: {
     marginTop: hp("5%"),

@@ -6,9 +6,10 @@ import {
   TouchableOpacity,
   TextInput,
   View,
+  Text,
+  Image,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { useFonts } from "expo-font";
@@ -16,30 +17,35 @@ import { actions, RichEditor, RichToolbar } from "react-native-pell-rich-editor"
 import * as ImagePicker from "expo-image-picker";
 import * as SQLite from "expo-sqlite";
 import Toast from "react-native-toast-message";
+import LottieView from "lottie-react-native";
 import AppLoading from "expo-app-loading";
+import { useNavigation } from "@react-navigation/native";
 
 import colors from "../constants/colors";
 import GoBack_dark from "../assets/svg/GoBack_dark";
 import Save_dark from "../assets/svg/Save_dark";
 import GoBack_light from "../assets/svg/GoBack_light";
+import CreateFolder from "../assets/svg/CreateFolder";
 import Save_light from "../assets/svg/Save_light";
 import db_queries from "../constants/db_queries";
-import { manipulateData, fetchData } from "../functions/db_functions";
+import { manipulateData } from "../functions/db_functions";
 
 const db = SQLite.openDatabase("db.database"); // returns Database object
 
-const AddNoteScreen = ({ navigation, route }) => {
+const AddFolderScreen = ({ route }) => {
   // load fonts
   const [fontsLoaded] = useFonts({
     "Mulish-Medium": require("../assets/fonts/Mulish/Mulish-Medium.ttf"),
+    "Mulish-Bold": require("../assets/fonts/Mulish/Mulish-Bold.ttf"),
   });
   // the editor reference
   const RichText = useRef();
   // keeping theme mode
-  const { themeMode, folderId, folderName } = route.params;
-  console.log(folderId, folderName);
+  const { themeMode } = route.params;
 
-  const [title, setTitle] = useState(null);
+  const navigation = useNavigation();
+
+  const [name, setName] = useState(null);
   const [description, setDescription] = useState("");
 
   const highlight = require("../assets/images/highlighter.png"); //icon for highlighting
@@ -95,7 +101,16 @@ const AddNoteScreen = ({ navigation, route }) => {
             {themeMode === "light" ? <GoBack_light /> : <GoBack_dark />}
           </TouchableOpacity>
 
-          <TouchableOpacity
+          <Text
+            style={[
+              styles.header,
+              { fontFamily: "Mulish-Medium", color: themeMode === "light" ? colors.dark : colors.greyWhite },
+            ]}
+          >
+            New Folder
+          </Text>
+
+          {/* <TouchableOpacity
             style={styles.saveBtn}
             onPress={() => {
               // check if title is empty (or white spaced)
@@ -108,7 +123,7 @@ const AddNoteScreen = ({ navigation, route }) => {
                   type: "error",
                   text2: "Title shouldn't be empty!",
                   visibilityTime: 2000,
-                  topOffset: hp("3%"),
+                  topOffset: hp("2%"),
                 });
               // check if description is empty (or white spaced)
               else if (
@@ -125,7 +140,7 @@ const AddNoteScreen = ({ navigation, route }) => {
                   type: "error",
                   text2: "Description shouldn't be empty!",
                   visibilityTime: 2000,
-                  topOffset: hp("3%"),
+                  topOffset: hp("2%"),
                 });
               // save the note to db
               else {
@@ -137,39 +152,23 @@ const AddNoteScreen = ({ navigation, route }) => {
                   "successfully added!",
                   "error in adding note!"
                 );
-
-                if (folderId && folderName) {
-                  const grabData = async () => {
-                    const fetched_noteId = await fetchData(db, db_queries.SELECT_NOTE_ID_BY_DATE, [date]);
-                    // console.log("fetched note id", fetched_noteId);
-                    manipulateData(
-                      db,
-                      db_queries.INSERT_NOTE_FOLDER,
-                      [parseInt(fetched_noteId[0].note_id), parseInt(folderId)],
-                      null,
-                      "error in adding note!"
-                    );
-                  };
-                  grabData().catch(console.error);
-                  navigation.navigate("FolderNotes", {
-                    themeMode: themeMode,
-                    folderName: folderName,
-                    folderId: folderId,
-                  });
-                } else navigation.replace("TopTabs");
+                navigation.replace("TopTabs");
               }
             }}
           >
             {themeMode === "light" ? <Save_light /> : <Save_dark />}
-          </TouchableOpacity>
+          </TouchableOpacity> */}
+
+          <LottieView source={require("../assets/animations/createFolder.json")} autoPlay style={styles.folder} />
 
           <TextInput
-            value={title}
-            placeholder="Write the title here ..."
+            value={name}
+            placeholder="Write folder name here ..."
+            maxLength={18}
             placeholderTextColor={colors.grey_light}
             selectionColor={colors.purpleBlue}
             onChangeText={(txt) => {
-              setTitle(txt);
+              setName(txt);
             }}
             style={[
               styles.input,
@@ -181,62 +180,53 @@ const AddNoteScreen = ({ navigation, route }) => {
             ]}
           />
 
-          <View style={styles.richTextContainer}>
-            <ScrollView>
-              <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-                <RichEditor
-                  ref={RichText}
-                  onChange={(text) => setDescription(text)}
-                  placeholder="Write the description here ..."
-                  androidHardwareAccelerationDisabled={true}
-                  editorStyle={{
-                    backgroundColor: themeMode === "light" ? colors.shellWhite : colors.navyBlue,
-                    color: themeMode === "light" ? colors.dark : "white",
-                    caretColor: colors.purpleBlue,
-                    placeholderColor: colors.grey_light,
-                    contentCSSText: "line-height: 22px; padding-left: 14px; padding-right: 14px; padding-top: 14px;",
-                  }}
-                  style={{ minHeight: hp("60%") }}
-                  useContainer={false}
-                />
-              </KeyboardAvoidingView>
-            </ScrollView>
-            <RichToolbar
-              editor={RichText}
-              selectedIconTint={colors.brown}
-              disabledIconTint="purple"
-              onPressAddImage={onPressAddImage}
-              iconSize={wp("4.3%")}
-              iconTint="black"
-              actions={[
-                actions.setBold,
-                actions.setItalic,
-                actions.setUnderline,
-                actions.setStrikethrough,
-                actions.alignLeft,
-                actions.alignCenter,
-                actions.alignRight,
-                actions.insertImage,
-                actions.undo,
-                actions.redo,
-                actions.insertBulletsList,
-                actions.insertOrderedList,
-                "highlightText",
-                "unHighlightText",
-                actions.insertLink,
-                actions.setSuperscript,
-                actions.setSubscript,
-                actions.keyboard,
-              ]}
-              // map icons for highlight & un highlight actions
-              iconMap={{
-                ["highlightText"]: highlight,
-                ["unHighlightText"]: unHighlight,
+          {/* <TouchableOpacity
+            style={{ position: "absolute", bottom: hp("15%"), left: wp("23%") }}
+            onPress={() => {
+              navigation.goBack();
+            }}
+          >
+            <Text style={[styles.cancelBtn, { color: themeMode === "light" ? colors.dark : "white" }]}>Cancel</Text>
+          </TouchableOpacity> */}
+          <View style={{ flexDirection: "row" }}>
+            <TouchableOpacity
+              style={styles.createFolderBtn}
+              onPress={() => {
+                navigation.goBack();
               }}
-              highlightText={highlightText}
-              unHighlightText={unHighlightText}
-              style={styles.richTextToolbarStyle}
-            />
+            >
+              <Text style={[styles.cancelBtn, { color: themeMode === "light" ? colors.dark : "white" }]}>Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.createFolderBtn}
+              onPress={() => {
+                // check if name is empty (or white spaced)
+                if (
+                  name === null ||
+                  name.replace(/&nbsp;/g, "").trim() === "" ||
+                  name.replace(/&nbsp;/g, "").trim().length === 0
+                )
+                  Toast.show({
+                    type: "error",
+                    text2: "Folder name shouldn't be empty!",
+                    visibilityTime: 2000,
+                    topOffset: hp("3%"),
+                  });
+                else {
+                  manipulateData(
+                    db,
+                    db_queries.INSERT_FOLDER,
+                    [name],
+                    "successfully created!",
+                    "error in creating folder!"
+                  );
+                  navigation.replace("TopTabs", { initialRouteName: "Folders" });
+                }
+              }}
+            >
+              <CreateFolder />
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
       ) : (
@@ -249,30 +239,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  header: { textAlign: "center", left: wp("2%"), fontSize: 18, top: hp("1.7%") },
+  folder: {
+    top: hp("5%"),
+    width: wp("55%"),
+    alignSelf: "center",
+  },
   input: {
-    width: wp("90%"),
+    width: wp("86%"),
     height: hp("6.5%"),
     borderRadius: wp("2%"),
-    top: hp("7.5%"),
-    left: wp("5%"),
-    fontSize: wp("4.2%"),
+    top: hp("15%"),
+    left: wp("7%"),
+    fontSize: hp("2.2%"),
     paddingLeft: wp("3.5%"),
     paddingRight: wp("3.5%"),
     textAlign: "auto",
   },
-  goBackBtn: { top: Platform.OS === "android" ? StatusBar.currentHeight : hp("2%"), left: wp("5%") },
-  saveBtn: {
-    alignSelf: "flex-end",
-    position: "absolute",
-    right: wp("5%"),
-    top: Platform.OS === "android" ? StatusBar.currentHeight : hp("2%"),
-  },
+  goBackBtn: { top: hp("5%"), left: wp("5%") },
+  saveBtn: { alignSelf: "flex-end", position: "absolute", right: wp("5%"), top: hp("3.8%") },
+  createFolderBtn: { top: hp("30%"), alignSelf: "flex-end", marginRight: wp("40%") },
+  cancelBtn: { fontFamily: "Mulish-Bold", fontSize: 16, left: wp("23%"), bottom: hp("2.2%") },
   richTextContainer: {
     display: "flex",
     flexDirection: "column-reverse",
     width: "90%",
     left: wp("5%"),
-    top: hp("-12%"),
+    top: hp("-13%"),
     borderWidth: 1,
     borderColor: colors.grey_lighter,
     borderTopLeftRadius: 12,
@@ -286,4 +279,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddNoteScreen;
+export default AddFolderScreen;

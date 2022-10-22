@@ -9,6 +9,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Text,
+  Alert,
 } from "react-native";
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from "react-native-responsive-screen";
 import { useFonts } from "expo-font";
@@ -47,8 +48,10 @@ const NoteDetailsScreen = ({ navigation, route }) => {
   const { themeMode, noteTitle, noteDateTime, noteDescription, noteId } = route.params;
 
   const [title, setTitle] = useState(null);
+  const [dateTime, setDateTime] = useState(null);
   const [description, setDescription] = useState("");
   const [editBtnPressed, setEditBtnPressed] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
 
   const highlight = require("../assets/images/highlighter.png"); //icon for highlighting
   const unHighlight = require("../assets/images/unHighlighter.png"); //icon for un highlighting
@@ -62,6 +65,10 @@ const NoteDetailsScreen = ({ navigation, route }) => {
   useEffect(() => {
     setTitle(noteTitle);
   }, [noteTitle]);
+
+  useEffect(() => {
+    setDateTime(noteDateTime);
+  }, [noteDateTime]);
 
   useEffect(() => {
     setDescription(noteDescription);
@@ -96,6 +103,32 @@ const NoteDetailsScreen = ({ navigation, route }) => {
     }
   };
 
+  const showConfirmDialog = () => {
+    return Alert.alert("Are your sure?", "You want to delete this note?", [
+      // The "Yes" button
+      {
+        text: "Delete",
+        onPress: () => {
+          // delete note from db
+          manipulateData(
+            db,
+            db_queries.DELETE_NOTE_BY_ID,
+            [noteId],
+            "successfully deleted!",
+            "error in deleting note!"
+          );
+          setShowDialog(false);
+          navigation.replace("TopTabs");
+        },
+      },
+      // The "No" button
+      // Does nothing but dismiss the dialog when tapped
+      {
+        text: "No",
+      },
+    ]);
+  };
+
   return (
     <>
       {themeMode !== null && fontsLoaded ? (
@@ -107,7 +140,8 @@ const NoteDetailsScreen = ({ navigation, route }) => {
               <TouchableOpacity
                 style={styles.goBackBtn}
                 onPress={() => {
-                  navigation.replace("TopTabs");
+                  // navigation.replace("TopTabs");
+                  navigation.goBack();
                 }}
               >
                 {themeMode === "light" ? <GoBack_light /> : <GoBack_dark />}
@@ -148,7 +182,7 @@ const NoteDetailsScreen = ({ navigation, route }) => {
                       type: "error",
                       text2: "Title shouldn't be empty!",
                       visibilityTime: 2000,
-                      topOffset: hp("2%"),
+                      topOffset: hp("3%"),
                     });
                   // check if description is empty (or white spaced)
                   else if (
@@ -165,11 +199,12 @@ const NoteDetailsScreen = ({ navigation, route }) => {
                       type: "error",
                       text2: "Description shouldn't be empty!",
                       visibilityTime: 2000,
-                      topOffset: hp("2%"),
+                      topOffset: hp("3%"),
                     });
                   // save the note to db
                   else {
                     const date = new Date().toString();
+                    setDateTime(date);
                     // edit note in db
                     manipulateData(
                       db,
@@ -188,22 +223,19 @@ const NoteDetailsScreen = ({ navigation, route }) => {
             )}
 
             {!editBtnPressed ? (
-              <TouchableOpacity style={styles.addToFolderBtn}>
+              <TouchableOpacity
+                style={styles.addToFolderBtn}
+                onPress={() => {
+                  navigation.navigate("AddToFolder", { themeMode: themeMode, noteId: noteId });
+                }}
+              >
                 {themeMode === "light" ? <AddToFolder_light /> : <AddToFolder_dark />}
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 style={styles.addToFolderBtn}
                 onPress={() => {
-                  // delete note from db
-                  manipulateData(
-                    db,
-                    db_queries.DELETE_NOTE_BY_ID,
-                    [noteId],
-                    "successfully deleted!",
-                    "error in deleting note!"
-                  );
-                  navigation.replace("TopTabs");
+                  showConfirmDialog();
                 }}
               >
                 {themeMode === "light" ? <Delete_light /> : <Delete_dark />}
@@ -240,12 +272,12 @@ const NoteDetailsScreen = ({ navigation, route }) => {
                 <Text
                   style={[styles.dateTime, { color: themeMode === "light" ? colors.grey_light : colors.greyWhite }]}
                 >
-                  {noteDateTime.substr(8, 2) +
+                  {dateTime.substr(8, 2) +
                     " " +
-                    noteDateTime.substr(4, 3) +
-                    noteDateTime.substr(10, 5) +
+                    dateTime.substr(4, 3) +
+                    dateTime.substr(10, 5) +
                     "," +
-                    noteDateTime.substr(15, 6)}
+                    dateTime.substr(15, 6)}
                 </Text>
               </>
             ) : null}
@@ -356,9 +388,9 @@ const styles = StyleSheet.create({
     paddingRight: wp("3.5%"),
     textAlign: "auto",
   },
-  goBackBtn: { top: hp("3.8%"), left: wp("5%") },
-  editBtn: { alignSelf: "flex-end", position: "absolute", right: wp("5%"), top: hp("3.8%") },
-  addToFolderBtn: { alignSelf: "flex-end", position: "absolute", right: wp("17%"), top: hp("3.8%") },
+  goBackBtn: { top: hp("3%"), left: wp("5%") },
+  editBtn: { alignSelf: "flex-end", position: "absolute", right: wp("5%"), top: hp("3%") },
+  addToFolderBtn: { alignSelf: "flex-end", position: "absolute", right: wp("17%"), top: hp("3%") },
   richTextContainer: {
     display: "flex",
     flexDirection: "column-reverse",
